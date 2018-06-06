@@ -1,6 +1,6 @@
 # Lumen microframework backend
 
->
+> Epic School API's backend 
 
 ## Build Setup
 
@@ -74,3 +74,7 @@ Laravel Lumen is a stunningly fast PHP micro-framework for building web applicat
 ## Official Documentation
 
 Documentation for the framework can be found on the [Lumen website](http://lumen.laravel.com/docs).
+
+---
+By [Majed Fayazi](https://majed.life)</br>
+[Prine Software Engineering](https://prine.ch)</br>
