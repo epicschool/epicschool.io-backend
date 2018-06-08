@@ -26,13 +26,12 @@ class UserController extends Controller
    */
   public function userInfo(Request $request)
   {
-      if ($request->user()) {
-          $user['firstname'] = $request->user()->firstname;
-          $user['lastname'] = $request->user()->lastname;
-          $user['email'] = $request->user()->email;
-          return response()->json($user);
-      } else {
-          return response('Unauthorized',401);
-      }
+    if ($request->user()) {
+        $user_id = $request->user()->id;
+        $user = User::find($user_id);
+        return response()->json($user);
+    } else {
+        return response('Unauthorized',401);
+    }
   }
 }

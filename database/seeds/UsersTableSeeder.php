@@ -11,10 +11,19 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
+        // DB::table('users')->insert([
+        //     'firstname' => "M",
+        //     'lastname' => "F",
+        //     'email' => "admin@epicschool.io",
+        //     'email_confirmed' => true,
+        //     'role_id' => 3, // 3 is admin role id
+        //     'password' => app('hash')->make('12345678'),
+        // ]);
+
         DB::table('users')->insert([
-            'firstname' => "M",
-            'lastname' => "F",
-            'email' => "admin@epicschool.io",
+            'firstname' => "MaJeD",
+            'lastname' => "FayaZi",
+            'email' => "n4e.majed@gmail.com",
             'email_confirmed' => true,
             'role_id' => 3, // 3 is admin role id
             'password' => app('hash')->make('12345678'),
