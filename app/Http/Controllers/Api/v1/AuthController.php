@@ -99,11 +99,11 @@ class AuthController extends Controller
         $email = $request->input('email');
         $password = $hasher->make($request->input('password'));
 
-        $address = $request->address != null ?$request->input('address'):'';
-        $address_addition = $request->address_addition != null ?$request->input('address_addition'):'';
-        $postcode = $request->postcode != null ?$request->input('postcode'):'';
-        $city = $request->city != null ?$request->input('city'):'';
-        $country = $request->country != null ?$request->input('country'):'';
+        $address = $request->input('address') != null ?$request->input('address'):'';
+        $address_addition = $request->input('address_addition') != null ?$request->input('address_addition'):'';
+        $postcode = $request->input('postcode') != null ?$request->input('postcode'):'';
+        $city =  $request->input('city') != null ?$request->input('city'):'';
+        $country =  $request->input('country') != null ?$request->input('country'):'';
 
         // $address = isset($request->address)?$request->input('address'):'';
         // $address_addition = isset($request->address_addition)?$request->input('address_addition'):'';
