@@ -25,7 +25,6 @@ $router->group(['prefix' => 'api'], function ($app) use($router) {
                 $router->get('/', function () use ($router) {
                     return "api/v1";
                 });
-                $router->get('userinfo','AuthController@userinfo');
                 
                 $router->group(['prefix' => 'auth'], function () use($router){
                     $router->post('login','AuthController@login');
@@ -37,8 +36,8 @@ $router->group(['prefix' => 'api'], function ($app) use($router) {
                     
                     $router->post('changePassword','AuthController@changePassword');
                     $router->post('changeEmail','AuthController@changeEmail');
-                    $router->post('changeNameAndAddress','ProfileController@changeNameAndAddress');
-                    // $router->get('userinfo','UserController@userinfo');
+                    $router->post('changeNameAndAddress','AuthController@changeNameAndAddress');
+                    $router->get('userinfo','AuthController@userinfo');
                     
                 });
 
