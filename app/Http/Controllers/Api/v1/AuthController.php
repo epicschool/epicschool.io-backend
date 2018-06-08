@@ -99,16 +99,17 @@ class AuthController extends Controller
         $email = $request->input('email');
         $password = $hasher->make($request->input('password'));
 
-        $address = isset($request->address)?$request->input('address'):'';
-        $address_addition = isset($request->address_addition)?$request->input('address_addition'):'';
-        $postcode = isset($request->postcode)?$request->input('postcode'):'';
-        $city = isset($request->city)?$request->input('city'):'';
-        $country = isset($request->country)?$request->input('country'):'';
+        // $address = isset($request->address)?$request->input('address'):'';
+        // $address_addition = isset($request->address_addition)?$request->input('address_addition'):'';
+        // $postcode = isset($request->postcode)?$request->input('postcode'):'';
+        // $city = isset($request->city)?$request->input('city'):'';
+        // $country = isset($request->country)?$request->input('country'):'';
 
-        // $address_addition = $request->input('address_addition');
-        // $postcode = $request->input('postcode');
-        // $city = $request->input('city');
-        // $country = $request->input('country');
+        $address = $request->input('address');
+        $address_addition = $request->input('address_addition');
+        $postcode = $request->input('postcode');
+        $city = $request->input('city');
+        $country = $request->input('country');
         
         
         $user = User::create([
