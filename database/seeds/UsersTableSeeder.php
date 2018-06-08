@@ -27,6 +27,10 @@ class UsersTableSeeder extends Seeder
             'email_confirmed' => true,
             'role_id' => 3, // 3 is admin role id
             'password' => app('hash')->make('12345678'),
+
+            'remember_token' => '',
+            'created_at' => date("Y-m-d H:i:s"),
+            'updated_at' => date("Y-m-d H:i:s"),
         ]);
     }
 }
