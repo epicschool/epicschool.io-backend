@@ -314,6 +314,70 @@ class AuthController extends Controller
         }
     }
 
+        /**
+     * changeEmail the email address of the user profile
+     *
+     * @param  Request      $request HttpRequest object
+     * @return Response     HttpResponse object
+     */
+    public function changeEmail(Request $request)
+    {
+        $new_email = $request->input('new_email');
+        $user = User::where('email', $new_email)->first();
+        if ($user) {
+            $res['success'] = false;
+            $res['message'] = 'This Email is already in use!';
+            return response($res,403);
+        } else {
+            $confirmation_code = $request->user()->emailConfirmationToken();
+
+            $request->user()->fill([
+                'email' => $new_email,
+                'email_confirmed' => false,
+                'email_confirmation_token' => $confirmation_code,
+            ])->save();
+
+            // send email
+            $data = array();
+            $data =['first_name'=> $request->user()->firstname,
+                    'last_name'=> $request->user()->lastname,
+                    'email'=> $request->user()->email,
+                    'email_confirmation_token'=> $confirmation_code,
+                ];
+
+            Mail::to($request->user()->email)
+                ->send(new UserEmailConfirmation($data));
+
+            
+            $res['success'] = true;
+            $res['email'] = $request->user()->email;
+            $res['message'] = 'Successfully updated the Email.';
+            return response($res,200);
+        }
+    }
+        
+    /**
+     * Update name and address of user
+     *
+     * @param  Request      $request HttpRequest object
+     * @return Response     HttpResponse object
+     */
+    public function changeNameAndAddress(Request $request)
+    {
+        $request->user()->fill([
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
+            'address' => $request->address,
+            'address_addition' => $request->address_addition,
+            'postcode' => $request->postcode,
+            'city' => $request->city,
+            'country' => $request->country,
+        ])->save();
+
+        return response("Successfully updated Name and Address", 200);
+    }
+
+
     /**
      * emailConfirmation function
      *
@@ -379,6 +443,21 @@ class AuthController extends Controller
 
     }
 
+    /**
+    * Return the requesting user info
+    *
+    * @return \Illuminate\Http\Response
+    */
+    public function userInfo(Request $request)
+    {
+        if ($request->user()) {
+            $user_id = $request->user()->id;
+            $user = User::find($user_id);
+            return response()->json($user);
+        } else {
+            return response('Unauthorized',401);
+        }
+    }
 
     private function generateAccessTokenAndStoreIt($user_id)
     {
