@@ -21,11 +21,13 @@ class AuthController extends Controller
 {
     private $expire_date;
     private $now;
+    private $sendEmail;
 
     public function __construct()
     {
         $this->expire_date = Carbon::now()->addDays(30);
         $this->now = Carbon::now();
+        $this->sendEmail = false;
     }
 
 /**
@@ -134,8 +136,10 @@ class AuthController extends Controller
                 'email_confirmation_token'=> $confirmation_code,
             ];
 
-        Mail::to($user->email)
-            ->send(new UserEmailConfirmation($data));
+        if ($this->sendEmail){
+            Mail::to($user->email)
+                ->send(new UserEmailConfirmation($data));
+        }
 
         // generate a api token and log the user in
         $api_token = $this->generateAccessTokenAndStoreIt($user->id);
@@ -188,10 +192,11 @@ class AuthController extends Controller
                          'email'=> $user->email,
                          'reset_token'=> $reset_token,
                      ];
-  
-                 Mail::to($user->email)
-                     ->send(new ForgetPasswordRequestEmail($data));
-                
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new ForgetPasswordRequestEmail($data));
+                }
+
             }
 
             return response('An email has been sent to '.$request->email.' with further instructions to reset the password',200);
@@ -245,9 +250,11 @@ class AuthController extends Controller
                         'email'=> $user->email,
                     ];
 
-                 Mail::to($user->email)
-                     ->send(new UserPasswordChanged($data));
-                
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new UserPasswordChanged($data));
+                }
+
                 //  password has been successfully changed, now we will generate a api token for user (log him in)
                 $api_token = $this->generateAccessTokenAndStoreIt($user->id);
                 $res['success'] = true;
@@ -294,13 +301,11 @@ class AuthController extends Controller
                         'email'=> $user->email,
                     ];
 
-                Mail::to($user->email)
-                    ->send(new UserPasswordChanged($data));
-
-                //  password has been successfully changed, now we will generate a api token for user (log him in)
-                $api_token = $this->generateAccessTokenAndStoreIt($user->id);
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new UserPasswordChanged($data));
+                }
                 $res['success'] = true;
-                $res['api_token'] = $api_token;
                 return response($res);
 
             } else {
@@ -345,8 +350,10 @@ class AuthController extends Controller
                     'email_confirmation_token'=> $confirmation_code,
                 ];
 
-            Mail::to($request->user()->email)
-                ->send(new UserEmailConfirmation($data));
+            if ($this->sendEmail){
+                Mail::to($user->email)
+                    ->send(new UserEmailConfirmation($data));
+            }
 
             
             $res['success'] = true;
@@ -434,8 +441,11 @@ class AuthController extends Controller
                 'email_confirmation_token'=> $confirmation_code,
             ];
 
-        Mail::to($user->email)
-            ->send(new UserEmailConfirmation($data));
+        if ($this->sendEmail){
+            Mail::to($user->email)
+                ->send(new UserEmailConfirmation($data));
+        }
+        
 
         $res['success'] = true;
         $res['message'] = 'Successfully resent the email confirmation token!';
