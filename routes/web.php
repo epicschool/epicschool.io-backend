@@ -33,15 +33,8 @@ $router->group(['prefix' => 'api'], function ($app) use($router) {
                     $router->post('forgetPassword','AuthController@forgetPassword');
                     $router->post('resetPassword','AuthController@resetPassword');
                     $router->post('emailConfirmation','AuthController@emailConfirmation');
-                    
-                    // $router->post('changePassword','AuthController@changePassword');
-                    // $router->post('changeEmail','AuthController@changeEmail');
-                    // $router->post('changeNameAndAddress','AuthController@changeNameAndAddress');
-
                     $router->post('changeAccountInfo','AuthController@changeAccountInfo');
-
                     $router->get('userinfo','AuthController@userinfo');
-                    
                 });
 
                 // Profile
