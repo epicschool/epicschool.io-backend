@@ -19,14 +19,14 @@ class CreateUsersTable extends Migration
             $table->string('lastname');
             $table->string('email',190)->unique();
 
-            $table->string('address')->nullable();
-            $table->string('address_addition')->nullable();
-            $table->string('postcode')->nullable();
-            $table->string('city')->nullable();
-            $table->string('country')->nullable();
+            $table->string('address')->default('');
+            $table->string('address_addition')->default('');
+            $table->string('postcode')->default('');
+            $table->string('city')->default('');
+            $table->string('country')->default('');
             
             $table->boolean('email_confirmed')->default(0);
-            $table->string('email_confirmation_token')->nullable();
+            $table->string('email_confirmation_token')->default('');
 
             $table->integer('role_id')->unsigned()->default(1);
             $table->foreign('role_id')->references('id')->on('roles');

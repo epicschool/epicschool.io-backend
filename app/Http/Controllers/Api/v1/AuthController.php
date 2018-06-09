@@ -21,11 +21,13 @@ class AuthController extends Controller
 {
     private $expire_date;
     private $now;
+    private $sendEmail;
 
     public function __construct()
     {
         $this->expire_date = Carbon::now()->addDays(30);
         $this->now = Carbon::now();
+        $this->sendEmail = false;
     }
 
 /**
@@ -97,13 +99,12 @@ class AuthController extends Controller
         $email = $request->input('email');
         $password = $hasher->make($request->input('password'));
 
-        $address = $request->input('address');
-        $address_addition = $request->input('address_addition');
-        $postcode = $request->input('postcode');
-        $city = $request->input('city');
-        $country = $request->input('country');
-        
-        
+        $address = $request->input('address') != null ?$request->input('address'):'';
+        $address_addition = $request->input('address_addition') != null ?$request->input('address_addition'):'';
+        $postcode = $request->input('postcode') != null ?$request->input('postcode'):'';
+        $city =  $request->input('city') != null ?$request->input('city'):'';
+        $country =  $request->input('country') != null ?$request->input('country'):'';
+
         $user = User::create([
             'firstname' => $firstname,
             'lastname' => $lastname,
@@ -134,8 +135,10 @@ class AuthController extends Controller
                 'email_confirmation_token'=> $confirmation_code,
             ];
 
-        Mail::to($user->email)
-            ->send(new UserEmailConfirmation($data));
+        if ($this->sendEmail){
+            Mail::to($user->email)
+                ->send(new UserEmailConfirmation($data));
+        }
 
         // generate a api token and log the user in
         $api_token = $this->generateAccessTokenAndStoreIt($user->id);
@@ -188,10 +191,11 @@ class AuthController extends Controller
                          'email'=> $user->email,
                          'reset_token'=> $reset_token,
                      ];
-  
-                 Mail::to($user->email)
-                     ->send(new ForgetPasswordRequestEmail($data));
-                
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new ForgetPasswordRequestEmail($data));
+                }
+
             }
 
             return response('An email has been sent to '.$request->email.' with further instructions to reset the password',200);
@@ -245,9 +249,11 @@ class AuthController extends Controller
                         'email'=> $user->email,
                     ];
 
-                 Mail::to($user->email)
-                     ->send(new UserPasswordChanged($data));
-                
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new UserPasswordChanged($data));
+                }
+
                 //  password has been successfully changed, now we will generate a api token for user (log him in)
                 $api_token = $this->generateAccessTokenAndStoreIt($user->id);
                 $res['success'] = true;
@@ -294,13 +300,11 @@ class AuthController extends Controller
                         'email'=> $user->email,
                     ];
 
-                Mail::to($user->email)
-                    ->send(new UserPasswordChanged($data));
-
-                //  password has been successfully changed, now we will generate a api token for user (log him in)
-                $api_token = $this->generateAccessTokenAndStoreIt($user->id);
+                if ($this->sendEmail){
+                    Mail::to($user->email)
+                        ->send(new UserPasswordChanged($data));
+                }
                 $res['success'] = true;
-                $res['api_token'] = $api_token;
                 return response($res);
 
             } else {
@@ -313,6 +317,72 @@ class AuthController extends Controller
             return response('Unauthorized',401);
         }
     }
+
+        /**
+     * changeEmail the email address of the user profile
+     *
+     * @param  Request      $request HttpRequest object
+     * @return Response     HttpResponse object
+     */
+    public function changeEmail(Request $request)
+    {
+        $new_email = $request->input('new_email');
+        $user = User::where('email', $new_email)->first();
+        if ($user) {
+            $res['success'] = false;
+            $res['message'] = 'This Email is already in use!';
+            return response($res,403);
+        } else {
+            $confirmation_code = $request->user()->emailConfirmationToken();
+
+            $request->user()->fill([
+                'email' => $new_email,
+                'email_confirmed' => false,
+                'email_confirmation_token' => $confirmation_code,
+            ])->save();
+
+            // send email
+            $data = array();
+            $data =['first_name'=> $request->user()->firstname,
+                    'last_name'=> $request->user()->lastname,
+                    'email'=> $request->user()->email,
+                    'email_confirmation_token'=> $confirmation_code,
+                ];
+
+            if ($this->sendEmail){
+                Mail::to($user->email)
+                    ->send(new UserEmailConfirmation($data));
+            }
+
+            
+            $res['success'] = true;
+            $res['email'] = $request->user()->email;
+            $res['message'] = 'Successfully updated the Email.';
+            return response($res,200);
+        }
+    }
+        
+    /**
+     * Update name and address of user
+     *
+     * @param  Request      $request HttpRequest object
+     * @return Response     HttpResponse object
+     */
+    public function changeNameAndAddress(Request $request)
+    {
+        $request->user()->fill([
+            'firstname' => $request->firstname,
+            'lastname' => $request->lastname,
+            'address' => $request->address,
+            'address_addition' => $request->address_addition,
+            'postcode' => $request->postcode,
+            'city' => $request->city,
+            'country' => $request->country,
+        ])->save();
+
+        return response("Successfully updated Name and Address", 200);
+    }
+
 
     /**
      * emailConfirmation function
@@ -370,8 +440,11 @@ class AuthController extends Controller
                 'email_confirmation_token'=> $confirmation_code,
             ];
 
-        Mail::to($user->email)
-            ->send(new UserEmailConfirmation($data));
+        if ($this->sendEmail){
+            Mail::to($user->email)
+                ->send(new UserEmailConfirmation($data));
+        }
+        
 
         $res['success'] = true;
         $res['message'] = 'Successfully resent the email confirmation token!';
@@ -379,6 +452,19 @@ class AuthController extends Controller
 
     }
 
+    /**
+    * Return the requesting user info
+    *
+    * @return \Illuminate\Http\Response
+    */
+    public function userInfo(Request $request)
+    {
+        if ($request->user()) {
+            return $request->user();
+        } else {
+            return response('Unauthorized',401);
+        }
+    }
 
     private function generateAccessTokenAndStoreIt($user_id)
     {
