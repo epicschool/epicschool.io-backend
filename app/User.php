@@ -30,6 +30,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     protected $hidden = [
         'password',
+        'email_confirmation_token','address','address_addition', 'postcode', 'city', 'country'
     ];
 
     /**

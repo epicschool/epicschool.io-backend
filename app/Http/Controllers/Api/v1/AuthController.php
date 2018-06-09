@@ -265,6 +265,81 @@ class AuthController extends Controller
     }
 
     /**
+     * changeAccountInfo function
+     *
+     * @param Request $request with Authenteication Bearer attached to it 
+     * 
+     * @return confirmation of Account Info change
+     */
+
+    public function changeAccountInfo(Request $request)
+    {
+        if ($request->user()) {
+
+            $this->validate($request, [
+                'firstname' => 'required|string|max:64',
+                'lastname' => 'required|string|max:64',
+                'email' => 'required|string|email|max:190',
+                'current_password' => 'required|string|min:8',
+                'new_password' => 'nullable|string|min:8',
+               
+                // 'address' => 'nullable',
+                // 'address_addition' => 'nullable',
+                // 'postcode' => 'nullable',
+                // 'city' => 'nullable',
+                // 'country' => 'nullable',
+            ]);
+
+            if ($this->checkCurrentPasswordMatch($request)) {
+
+                if ($request->user()->email != $request->email) {
+                    $res = $this->changeEmail($request);
+                    if ($res['success'] == false){
+                        return response($res,403);
+                    }
+                }
+
+                if ($request->new_password != '') {
+                    $res = $this->changePassword($request);
+                    if ($res['success'] == false){
+                        return response($res,403);
+                    }
+                }
+
+                $res = $this->changeNameAndAddress($request);
+
+                return response($res,200);
+            }
+
+
+
+        }
+    }
+    /**
+     * check if current_password in request match the user password
+     *
+     * @param Request $request with Authenteication Bearer attached to it and the user "current_password"
+     * 
+     * @return confirmation of matching passwords
+     */
+
+    private function checkCurrentPasswordMatch(Request $request)
+    {
+        $email = $request->user()->email;
+        $current_password = $request->current_password;
+
+        $user = User::where('email', $email)->first();
+
+        if (Hash::check($current_password, $user->password)) {
+            $res['success'] = true;
+            return $res;
+        } else {
+            $res['success'] = false;
+            $res['message'] = 'Current password is incorrect!';
+            return $res;
+        }
+    } 
+    /**
      * changePassword function
      *
      * @param Request $request with Authenteication Bearer attached to it and the user "current_password" and "new_password"
@@ -272,50 +347,30 @@ class AuthController extends Controller
      * @return confirmation of Password change
      */
 
-    public function changePassword(Request $request)
+    private function changePassword(Request $request)
     {
-        if ($request->user()) {
-            $this->validate($request, [
-                'current_password' => 'required|string',
-                'new_password' => 'required|string|min:8',
-            ]);
+        $email = $request->user()->email;
+        $user = User::where('email', $email)->first();
 
-            $email = $request->user()->email;
-            $current_password = $request->current_password;
-            $new_password = $request->new_password;
-    
-            $user = User::where('email', $email)->first();
-    
-            if (Hash::check($current_password, $user->password)) {
-                $hasher = app()->make('hash');
-                $hashed_password = $hasher->make($request->new_password);  
-                $user->fill([
-                    'password' => $hashed_password,
-                ])->save();
+        $hasher = app()->make('hash');
+        $hashed_password = $hasher->make($request->new_password);  
+        $user->fill([
+            'password' => $hashed_password,
+        ])->save();
 
-                // send email
-                $data = array();
-                $data =['first_name'=> $user->firstname,
-                        'last_name'=> $user->lastname,
-                        'email'=> $user->email,
-                    ];
+        // send email
+        $data = array();
+        $data =['first_name'=> $user->firstname,
+                'last_name'=> $user->lastname,
+                'email'=> $user->email,
+            ];
 
-                if ($this->sendEmail){
-                    Mail::to($user->email)
-                        ->send(new UserPasswordChanged($data));
-                }
-                $res['success'] = true;
-                return response($res);
-
-            } else {
-                $res['success'] = false;
-                $res['message'] = 'Das aktuelle Passwort stimmt nicht überein.';
-                return response($res, 500);
-            }
-
-        } else {
-            return response('Unauthorized',401);
+        if ($this->sendEmail){
+            Mail::to($user->email)
+                ->send(new UserPasswordChanged($data));
         }
+        $res['success'] = true;
+        return $res;
     }
 
         /**
@@ -324,14 +379,14 @@ class AuthController extends Controller
      * @param  Request      $request HttpRequest object
      * @return Response     HttpResponse object
      */
-    public function changeEmail(Request $request)
+    private function changeEmail(Request $request)
     {
-        $new_email = $request->input('new_email');
+        $new_email = $request->input('email');
         $user = User::where('email', $new_email)->first();
         if ($user) {
             $res['success'] = false;
             $res['message'] = 'This Email is already in use!';
-            return response($res,403);
+            return $res;
         } else {
             $confirmation_code = $request->user()->emailConfirmationToken();
 
@@ -353,12 +408,11 @@ class AuthController extends Controller
                 Mail::to($user->email)
                     ->send(new UserEmailConfirmation($data));
             }
-
-            
+   
             $res['success'] = true;
             $res['email'] = $request->user()->email;
             $res['message'] = 'Successfully updated the Email.';
-            return response($res,200);
+            return $res;
         }
     }
         
@@ -368,19 +422,20 @@ class AuthController extends Controller
      * @param  Request      $request HttpRequest object
      * @return Response     HttpResponse object
      */
-    public function changeNameAndAddress(Request $request)
+    private function changeNameAndAddress(Request $request)
     {
         $request->user()->fill([
             'firstname' => $request->firstname,
             'lastname' => $request->lastname,
-            'address' => $request->address,
-            'address_addition' => $request->address_addition,
-            'postcode' => $request->postcode,
-            'city' => $request->city,
-            'country' => $request->country,
+            // 'address' => $request->address,
+            // 'address_addition' => $request->address_addition,
+            // 'postcode' => $request->postcode,
+            // 'city' => $request->city,
+            // 'country' => $request->country,
         ])->save();
-
-        return response("Successfully updated Name and Address", 200);
+        $res['success'] = true;
+        $res['message'] = 'Successfully updated Name and Address';
+        return $res;
     }
 
 
