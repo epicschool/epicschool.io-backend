@@ -1,6 +1,6 @@
 # Lumen microframework backend
 
-> Epic School API's backend 
+> Epic School API's backend powered by Lumen
 
 ## Build Setup
 
