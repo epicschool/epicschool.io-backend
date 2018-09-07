@@ -73,7 +73,7 @@ class AuthController extends Controller
  /**
  * register function
  *
- * @param Request $request with "firstname", "lastname", "email", "password" and "password_confirmation" 
+ * @param Request $request with "firstname", "lastname", "email", "password"
  * 
  * @return confirmation of registering 
  */
@@ -84,7 +84,7 @@ class AuthController extends Controller
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
            
             'address' => 'nullable',
             'address_addition' => 'nullable',
